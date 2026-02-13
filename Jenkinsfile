@@ -1,9 +1,14 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        IMAGE_NAME = "geminieats-app"
+        CONTAINER_NAME = "geminieats-container"
+        HOST_PORT = "8082"
+    }
 
-        stage('Checkout') {
+    stages {
+            stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/main']],
@@ -12,25 +17,50 @@ pipeline {
             }
         }
 
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t myapp .'
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
-        stage('Remove Old Container') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                docker stop mycontainer || true
-                docker rm mycontainer || true
-                '''
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
-        stage('Run Container') {
+        stage('Stop & Remove Old Container') {
             steps {
-                sh 'docker run -d -p 80:80 --name mycontainer myapp'
+                sh """
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+                """
             }
+        }
+
+        stage('Run New Container') {
+            steps {
+                sh """
+                docker run -d -p ${HOST_PORT}:80 \
+                --name ${CONTAINER_NAME} \
+                ${IMAGE_NAME}
+                """
+            }
+        }
+
+        stage('Cleanup Unused Images') {
+            steps {
+                sh "docker image prune -f"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Successful 🚀"
+        }
+        failure {
+            echo "Build Failed ❌"
         }
     }
 }
