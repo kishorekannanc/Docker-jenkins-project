@@ -1,0 +1,8 @@
+
+{
+  "name": "GeminiEats",
+  "description": "A high-end food delivery application featuring AI-powered dish recommendations and a seamless ordering experience.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
