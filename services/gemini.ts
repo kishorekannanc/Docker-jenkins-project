@@ -1,7 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MOCK_RESTAURANTS } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY || '' });
+
 
 export const getSmartRecommendation = async (prompt: string) => {
   // Flatten all menu items for the AI to choose from
