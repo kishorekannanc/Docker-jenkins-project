@@ -3,35 +3,34 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                sh 'echo "Building the project..."'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/yourrepo.git']]
+                ])
             }
         }
 
-        stage('Test') {
+        stage('Build Image') {
             steps {
-                sh 'echo "Running tests..."'
+                sh 'docker build -t myapp .'
             }
         }
 
-        stage('Deploy') {
+        stage('Remove Old Container') {
             steps {
-                sh 'echo "Deploying the project..."'
+                sh '''
+                docker stop mycontainer || true
+                docker rm mycontainer || true
+                '''
             }
         }
 
-    }
-
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-        always {
-            echo 'Pipeline finished.'
+        stage('Run Container') {
+            steps {
+                sh 'docker run -d -p 80:80 --name mycontainer myapp'
+            }
         }
     }
 }
